@@ -1,22 +1,89 @@
 - hosts: yusrv-fr1
   tasks: 
 
-  - name: "Stop Uptime Kuma container"
+### [Music] - Navidrome container update
+
+  - name: music | Remove Navidrome container
+    containers.podman.podman_container:
+      name: Navidrome
+      state: absent
+    tags:
+      - music
+
+  - name: music | Remove Navidrome image
+    containers.podman.podman_image:
+      name: docker.io/deluan/navidrome:latest
+      state: absent
+    tags:
+      - music
+
+  - name: music | Recreate Navidrome with updated image
+    containers.podman.podman_container:
+      image: docker.io/deluan/navidrome:latest
+      pod: music
+      name: Navidrome
+      restart_policy: always
+      memory: 1024m
+      env:
+        ND_SCANSCHEDULE: 1h
+        ND_LOGLEVEL: info
+        ND_SESSIONTIMEOUT: 24h
+        ND_MUSICFOLDER: /music
+        ND_DATAFOLDER: /data
+      volume: 
+        - /home/{{ ansible_user }}/navidrome/music:/music:Z
+        - /home/{{ ansible_user }}/navidrome/data:/data:Z
+    tags:
+      - music
+
+### [Stream] - Navidrome container update
+
+  - name: stream | Remove Jellyfin container
+    containers.podman.podman_container:
+      name: jellyfin
+      state: absent
+    tags:
+      - stream
+
+  - name: stream | Remove Jellyfin image
+    containers.podman.podman_image:
+      name: docker.io/jellyfin/jellyfin:latest
+      state: absent
+    tags:
+      - stream
+
+  - name: stream | Recreate Jellyfin with updated image
+    containers.podman.podman_container:
+      image: docker.io/jellyfin/jellyfin:latest
+      pod: stream
+      name: Jellyfin
+      restart_policy: always
+      memory: 1024m
+      volume: 
+        - /home/{{ ansible_user }}/jellyfin/config:/config:Z
+        - /home/{{ ansible_user }}/jellyfin/cache:/cache:Z
+        - /home/{{ ansible_user }}/jellyfin/media:/media:Z
+    tags:
+      - stream
+
+
+### [Status] - Uptime Kuma container update
+
+  - name: status | Remove Uptime Kuma container
     containers.podman.podman_container:
       name: Uptime-Kuma
-      state: stopped
-    tags:
-      - status
-
-  - name: "Remove Uptime Kuma image"
-    containers.podman.podman_image:
-      name: docker.io/louislam/uptime-kuma:latest
-      force: yes
       state: absent
     tags:
       - status
 
-  - name: "Recreate Uptime Kuma with updated image"
+  - name: status | Remove Uptime Kuma image
+    containers.podman.podman_image:
+      name: docker.io/louislam/uptime-kuma:latest
+      state: absent
+    tags:
+      - status
+
+  - name: status | Recreate Uptime Kuma with updated image
     containers.podman.podman_container:
       image: docker.io/louislam/uptime-kuma:latest
       pod: status
