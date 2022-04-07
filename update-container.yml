@@ -1,0 +1,29 @@
+- hosts: yusrv-fr1
+  tasks: 
+
+  - name: "Stop Uptime Kuma container"
+    containers.podman.podman_container:
+      name: Uptime-Kuma
+      state: stopped
+    tags:
+      - status
+
+  - name: "Remove Uptime Kuma image"
+    containers.podman.podman_image:
+      name: docker.io/louislam/uptime-kuma:latest
+      force: yes
+      state: absent
+    tags:
+      - status
+
+  - name: "Recreate Uptime Kuma with updated image"
+    containers.podman.podman_container:
+      image: docker.io/louislam/uptime-kuma:latest
+      pod: status
+      name: Uptime-Kuma
+      restart_policy: always
+      memory: 512m
+      volume: 
+        - /home/{{ ansible_user }}/kuma/data:/app/data:Z
+    tags:
+      - status

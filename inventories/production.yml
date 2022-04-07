@@ -1,0 +1,7 @@
+yucloud:
+  hosts:
+    yusrv-fr1: 
+      ansible_host: yusrv.yutetsudo.com
+  vars:
+    ansible_connection: ssh
+    ansible_user: yutetsudo
