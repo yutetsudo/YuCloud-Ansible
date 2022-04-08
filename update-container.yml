@@ -8,6 +8,44 @@
     tags:
       - always
 
+### [Drive] - Nextcloud container update
+
+  - name: Drive | Remove Nextcloud container
+    containers.podman.podman_container:
+      name: Nextcloud
+      state: absent
+    tags:
+      - drive
+
+  - name: Drive | Remove Nextcloud image
+    containers.podman.podman_image:
+      name: docker.io/library/nextcloud
+      state: absent
+    tags:
+      - drive
+
+  - name: Drive | Recreate Nextcloud with updated image
+    containers.podman.podman_container:
+      image: docker.io/library/nextcloud
+      pod: drive
+      name: Nextcloud
+      restart_policy: always
+      memory: 1024m
+      env:
+        MYSQL_HOST: drive
+        MYSQL_DATABASE: nextcloud
+        MYSQL_USER: "{{ pass['MySQL_Username'] }}"
+        MYSQL_PASSWORD: "{{ pass['MySQL_Password'] }}"
+        NEXTCLOUD_ADMIN_USER: "{{ pass['Nextcloud_Admin_Username'] }}"
+        NEXTCLOUD_ADMIN_PASSWORD: "{{ pass['Nextcloud_Admin_Password'] }}"
+        NEXTCLOUD_HOSTNAME: drive 
+        NEXTCLOUD_TRUSTED_DOMAINS: drive.yutetsudo.com
+      volume: 
+        - /home/{{ ansible_user }}/nextcloud/app:/var/www/html:Z
+        - /home/{{ ansible_user }}/nextcloud/data:/var/www/html/data:Z
+    tags:
+      - drive
+
 ### [Music] - Navidrome container update
 
   - name: Music | Remove Navidrome container
@@ -97,7 +135,7 @@
       restart_policy: always
       memory: 512m
       env:
-        ADMIN_TOKEN: "{{ pass['vaultwarden-token'] }}"
+        ADMIN_TOKEN: "{{ pass['Vaultwarden_Token'] }}"
       volume: 
         - /home/{{ ansible_user }}/vaultwarden/data:/data:Z
     tags:
