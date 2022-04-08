@@ -8,6 +8,75 @@
     tags:
       - always
 
+### [Proxy] - Proxy container update
+
+  - name: Proxy | Remove Nginx Proxy Manager container
+    containers.podman.podman_container:
+      name: Proxy
+      state: absent
+    tags:
+      - proxy
+
+  - name: Proxy | Remove Nginx Proxy Manager image
+    containers.podman.podman_image:
+      name: docker.io/jc21/nginx-proxy-manager:latest
+      state: absent
+    tags:
+      - proxy
+
+  - name: Proxy | Recreate Nginx Proxy Manager with updated image
+    containers.podman.podman_container:
+      image: docker.io/jc21/nginx-proxy-manager:latest
+      name: Proxy
+      hostname: Proxy
+      restart_policy: always
+      memory: 512m
+      network: proxy
+      ports:
+        - 80:80
+        - 443:443
+        - 8081:81
+      volume: 
+        - /home/{{ ansible_user }}/proxy/data:/data:Z
+        - /home/{{ ansible_user }}/proxy/letsencrypt:/etc/letsencrypt:Z
+    tags:
+      - proxy
+
+### [AdGard] - AdGuard container update
+
+  - name: AdGuard | Remove AdGuard container
+    containers.podman.podman_container:
+      name: AdGuard
+      state: absent
+    tags:
+      - adguard
+
+  - name: AdGuard | Remove AdGuard image
+    containers.podman.podman_image:
+      name: docker.io/adguard/adguardhome:latest
+      state: absent
+    tags:
+      - adguard
+
+  - name: AdGuard | Recreate AdGuard with updated image
+    containers.podman.podman_container:
+      image: docker.io/adguard/adguardhome:latest
+      name: AdGuard
+      hostname: AdGuard
+      restart_policy: always
+      memory: 512m
+      env:
+        TZ: Europe/Paris
+        INTERFACE: tap0
+      ports:
+        - 62.210.188.129:53:53
+        - 8082:3000
+      volume: 
+        - /home/{{ ansible_user }}/adguard/work:/opt/adguardhome/work:Z
+        - /home/{{ ansible_user }}/adguard/conf:/opt/adguardhome/conf:Z
+    tags:
+      - adguard
+
 ### [Drive] - Nextcloud container update
 
   - name: Drive | Remove Nextcloud container
@@ -85,7 +154,7 @@
 
   - name: Stream | Remove Jellyfin container
     containers.podman.podman_container:
-      name: jellyfin
+      name: Jellyfin
       state: absent
     tags:
       - stream
