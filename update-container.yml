@@ -1,23 +1,30 @@
 - hosts: yusrv-fr1
   tasks: 
 
+  - name: Import password and token from pass.yml
+    include_vars:
+      file: pass.yml
+      name: pass
+    tags:
+      - always
+
 ### [Music] - Navidrome container update
 
-  - name: music | Remove Navidrome container
+  - name: Music | Remove Navidrome container
     containers.podman.podman_container:
       name: Navidrome
       state: absent
     tags:
       - music
 
-  - name: music | Remove Navidrome image
+  - name: Music | Remove Navidrome image
     containers.podman.podman_image:
       name: docker.io/deluan/navidrome:latest
       state: absent
     tags:
       - music
 
-  - name: music | Recreate Navidrome with updated image
+  - name: Music | Recreate Navidrome with updated image
     containers.podman.podman_container:
       image: docker.io/deluan/navidrome:latest
       pod: music
@@ -38,21 +45,21 @@
 
 ### [Stream] - Navidrome container update
 
-  - name: stream | Remove Jellyfin container
+  - name: Stream | Remove Jellyfin container
     containers.podman.podman_container:
       name: jellyfin
       state: absent
     tags:
       - stream
 
-  - name: stream | Remove Jellyfin image
+  - name: Stream | Remove Jellyfin image
     containers.podman.podman_image:
       name: docker.io/jellyfin/jellyfin:latest
       state: absent
     tags:
       - stream
 
-  - name: stream | Recreate Jellyfin with updated image
+  - name: Stream | Recreate Jellyfin with updated image
     containers.podman.podman_container:
       image: docker.io/jellyfin/jellyfin:latest
       pod: stream
@@ -66,24 +73,53 @@
     tags:
       - stream
 
+### [Vault] - Navidrome container update
+
+  - name: Vault | Remove Vaultwarden container
+    containers.podman.podman_container:
+      name: Vaultwarden
+      state: absent
+    tags:
+      - vault
+
+  - name: Vault | Remove Vaultwarden image
+    containers.podman.podman_image:
+      name: docker.io/vaultwarden/server:latest
+      state: absent
+    tags:
+      - vault
+
+  - name: Vault | Recreate Vaultwarden with updated image
+    containers.podman.podman_container:
+      image: docker.io/vaultwarden/server:latest
+      pod: vault
+      name: Vaultwarden
+      restart_policy: always
+      memory: 512m
+      env:
+        ADMIN_TOKEN: "{{ pass['vaultwarden-token'] }}"
+      volume: 
+        - /home/{{ ansible_user }}/vaultwarden/data:/data:Z
+    tags:
+      - vault
 
 ### [Status] - Uptime Kuma container update
 
-  - name: status | Remove Uptime Kuma container
+  - name: Status | Remove Uptime Kuma container
     containers.podman.podman_container:
       name: Uptime-Kuma
       state: absent
     tags:
       - status
 
-  - name: status | Remove Uptime Kuma image
+  - name: Status | Remove Uptime Kuma image
     containers.podman.podman_image:
       name: docker.io/louislam/uptime-kuma:latest
       state: absent
     tags:
       - status
 
-  - name: status | Recreate Uptime Kuma with updated image
+  - name: Status | Recreate Uptime Kuma with updated image
     containers.podman.podman_container:
       image: docker.io/louislam/uptime-kuma:latest
       pod: status
