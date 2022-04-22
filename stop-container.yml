@@ -1,0 +1,74 @@
+- hosts: "yufr1"
+  tasks: 
+
+
+### [Status] - Stop status service
+### Need to be first to avoid uptime kuma unwanted error
+
+  - name: "Status | Stopping Uptime-Kuma container"
+    containers.podman.podman_container:
+      name: "Uptime-Kuma"
+      state: "stopped"
+    tags:
+      - "status"
+
+### [AdGuard] - Stop AdGuard Container
+
+  - name: "AdGuard | Stopping AdGuard container"
+    containers.podman.podman_container:
+      name: "AdGuard"
+      state: "stopped"
+    tags:
+      - "adguard"
+
+### [Proxy] - Stop Proxy Container
+
+  - name: "Proxy | Stopping Nginx Proxy Manager container"
+    containers.podman.podman_container:
+      name: "Proxy"
+      state: "stopped"
+    tags:
+      - "proxy"
+
+### [Drive] - Stop drive service
+
+  - name: "Drive | Stopping MariaDB container"
+    containers.podman.podman_container:
+      name: "DriveDB"
+      state: "stopped"
+    tags:
+      - "drive"
+
+  - name: "Drive | Stopping Nextcloud container"
+    containers.podman.podman_container:
+      name: "Nextcloud"
+      state: "stopped"
+    tags:
+      - "drive"
+
+### [Music] - Stop music service
+
+  - name: "Music | Stopping Navidrome container"
+    containers.podman.podman_container:
+      name: "Navidrome"
+      state: "stopped"
+    tags:
+      - "music"
+
+### [Stream] - Stop stream service
+
+  - name: "Stream | Stopping Jellyfin container"
+    containers.podman.podman_container:
+      name: "Jellyfin"
+      state: "stopped"
+    tags:
+      - "stream"
+
+### [Vault] - Stop vault service
+
+  - name: "Vault | Stopping Vaultwarden container"
+    containers.podman.podman_container:
+      name: "Vaultwarden"
+      state: "stopped"
+    tags:
+      - "vault"

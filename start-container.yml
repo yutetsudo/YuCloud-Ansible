@@ -1,0 +1,74 @@
+- hosts: "yufr1"
+  tasks: 
+
+
+### [AdGuard] - Start AdGuard Container
+
+  - name: "AdGuard | Starting AdGuard container"
+    containers.podman.podman_container:
+      name: "AdGuard"
+      state: "started"
+    tags:
+      - "adguard"
+
+### [Proxy] - Start Proxy Container
+
+  - name: "Proxy | Starting Nginx Proxy Manager container"
+    containers.podman.podman_container:
+      name: "Proxy"
+      state: "started"
+    tags:
+      - "proxy"
+
+### [Drive] - Start drive service
+
+  - name: "Drive | Starting MariaDB container"
+    containers.podman.podman_container:
+      name: "DriveDB"
+      state: "started"
+    tags:
+      - "drive"
+
+  - name: "Drive | Starting Nextcloud container"
+    containers.podman.podman_container:
+      name: "Nextcloud"
+      state: "started"
+    tags:
+      - "drive"
+
+### [Music] - Start music service
+
+  - name: "Music | Starting Navidrome container"
+    containers.podman.podman_container:
+      name: "Navidrome"
+      state: "started"
+    tags:
+      - "music"
+
+### [Stream] - Start stream service
+
+  - name: "Stream | Starting Jellyfin container"
+    containers.podman.podman_container:
+      name: "Jellyfin"
+      state: "started"
+    tags:
+      - "stream"
+
+### [Vault] - Start vault service
+
+  - name: "Vault | Starting Vaultwarden container"
+    containers.podman.podman_container:
+      name: "Vaultwarden"
+      state: "started"
+    tags:
+      - "vault"
+
+### [Status] - Start status service
+### Need to be last to avoid uptime kuma unwanted error
+
+  - name: "Status | Starting Uptime-Kuma container"
+    containers.podman.podman_container:
+      name: "Uptime-Kuma"
+      state: "started"
+    tags:
+      - "status"

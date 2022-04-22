@@ -8,23 +8,9 @@
     tags:
       - "always"
 
-### [AdGard] - AdGuard container update
+### [AdGard] - Create AdGard container
 
-  - name: "AdGuard | Remove AdGuard container"
-    containers.podman.podman_container:
-      name: "AdGuard"
-      state: "absent"
-    tags:
-      - "adguard"
-
-  - name: "AdGuard | Remove AdGuard image"
-    containers.podman.podman_image:
-      name: "docker.io/adguard/adguardhome:latest"
-      state: "absent"
-    tags:
-      - "adguard"
-
-  - name: "AdGuard | Recreate AdGuard with updated image"
+  - name: "AdGuard | Creating AdGuard container"
     containers.podman.podman_container:
       image: "docker.io/adguard/adguardhome:latest"
       name: "AdGuard"
@@ -41,26 +27,13 @@
       volume: 
         - "/home/{{ ansible_user }}/adguard/work:/opt/adguardhome/work:Z"
         - "/home/{{ ansible_user }}/adguard/conf:/opt/adguardhome/conf:Z"
+      state: "started"
     tags:
       - "adguard"
 
-### [Proxy] - Proxy container update
+### [Proxy] - Create Proxy container
 
-  - name: "Proxy | Remove Nginx Proxy Manager container"
-    containers.podman.podman_container:
-      name: "Proxy"
-      state: "absent"
-    tags:
-      - "proxy"
-
-  - name: "Proxy | Remove Nginx Proxy Manager image"
-    containers.podman.podman_image:
-      name: "docker.io/jc21/nginx-proxy-manager:latest"
-      state: "absent"
-    tags:
-      - "proxy"
-
-  - name: "Proxy | Recreate Nginx Proxy Manager with updated image"
+  - name: "Proxy | Creating Nginx Proxy Manager container"
     containers.podman.podman_container:
       image: "docker.io/jc21/nginx-proxy-manager:latest"
       name: "Proxy"
@@ -75,26 +48,41 @@
       volume: 
         - "/home/{{ ansible_user }}/proxy/data:/data:Z"
         - "/home/{{ ansible_user }}/proxy/letsencrypt:/etc/letsencrypt:Z"
+      state: "started"
     tags:
       - "proxy"
 
-### [Drive] - Nextcloud container update
+### [Drive] - Create drive service
 
-  - name: "Drive | Remove Nextcloud container"
+  - name: "Drive | Creating drive pod"
+    containers.podman.podman_pod:
+      name: "drive"
+      hostname: "drive"
+      network: "proxy"
+      state: "started"
+    tags:
+      - "drive"
+
+  - name: "Drive | Creating DriveDB container"
     containers.podman.podman_container:
-      name: "Nextcloud"
-      state: "absent"
+      image: "docker.io/library/mariadb"
+      pod: "drive"
+      name: "DriveDB"
+      restart_policy: "always"
+      memory: "512m"
+      env:
+        MYSQL_DATABASE: "nextcloud"
+        MYSQL_USER: "{{ pass['MySQL_Username'] }}"
+        MYSQL_PASSWORD: "{{ pass['MySQL_Password'] }}"
+        MYSQL_ROOT_PASSWORD: "{{ pass['MySQL_Root_Password'] }}"
+      volume: 
+        - "/home/{{ ansible_user }}/nextcloud/database:/var/lib/mysql:Z" 
+      command: "--skip-innodb-read-only-compressed"
+      state: "started"
     tags:
       - "drive"
 
-  - name: "Drive | Remove Nextcloud image"
-    containers.podman.podman_image:
-      name: "docker.io/library/nextcloud"
-      state: "absent"
-    tags:
-      - "drive"
-
-  - name: "Drive | Recreate Nextcloud with updated image"
+  - name: "Drive | Creating Nextcloud container"
     containers.podman.podman_container:
       image: "docker.io/library/nextcloud"
       pod: "drive"
@@ -113,26 +101,22 @@
       volume: 
         - "/home/{{ ansible_user }}/nextcloud/app:/var/www/html:Z"
         - "/home/{{ ansible_user }}/nextcloud/data:/var/www/html/data:Z"
+      state: "started"
     tags:
       - "drive"
 
-### [Music] - Navidrome container update
+### [Music] - Create music service
 
-  - name: "Music | Remove Navidrome container"
-    containers.podman.podman_container:
-      name: "Navidrome"
-      state: "absent"
+  - name: "Music | Creating music pod"
+    containers.podman.podman_pod:
+      name: "music"
+      hostname: "music"
+      network: "proxy"
+      state: "started"
     tags:
       - "music"
 
-  - name: "Music | Remove Navidrome image"
-    containers.podman.podman_image:
-      name: "docker.io/deluan/navidrome:latest"
-      state: "absent"
-    tags:
-      - "music"
-
-  - name: "Music | Recreate Navidrome with updated image"
+  - name: "Music | Creating Navidrome container"
     containers.podman.podman_container:
       image: "docker.io/deluan/navidrome:latest"
       pod: "music"
@@ -148,26 +132,22 @@
       volume: 
         - "/home/{{ ansible_user }}/navidrome/music:/music:Z"
         - "/home/{{ ansible_user }}/navidrome/data:/data:Z"
+      state: "started"
     tags:
       - "music"
 
-### [Stream] - Navidrome container update
+### [Stream] - Create stream service
 
-  - name: "Stream | Remove Jellyfin container"
-    containers.podman.podman_container:
-      name: "Jellyfin"
-      state: "absent"
+  - name: "Stream | Creating stream pod"
+    containers.podman.podman_pod:
+      name: "stream"
+      hostname: "stream"
+      network: "proxy"
+      state: "started"
     tags:
       - "stream"
 
-  - name: "Stream | Remove Jellyfin image"
-    containers.podman.podman_image:
-      name: "docker.io/jellyfin/jellyfin:latest"
-      state: "absent"
-    tags:
-      - "stream"
-
-  - name: "Stream | Recreate Jellyfin with updated image"
+  - name: "Stream | Creating Jellyfin container"
     containers.podman.podman_container:
       image: "docker.io/jellyfin/jellyfin:latest"
       pod: "stream"
@@ -178,26 +158,22 @@
         - "/home/{{ ansible_user }}/jellyfin/config:/config:Z"
         - "/home/{{ ansible_user }}/jellyfin/cache:/cache:Z"
         - "/home/{{ ansible_user }}/jellyfin/media:/media:Z"
+      state: "started"
     tags:
       - "stream"
 
-### [Vault] - Navidrome container update
+### [Vault] - Create vault service
 
-  - name: "Vault | Remove Vaultwarden container"
-    containers.podman.podman_container:
-      name: "Vaultwarden"
-      state: "absent"
+  - name: "Vault | Creating vault pod"
+    containers.podman.podman_pod:
+      name: "vault"
+      hostname: "vault"
+      network: "proxy"
+      state: "started"
     tags:
       - "vault"
 
-  - name: "Vault | Remove Vaultwarden image"
-    containers.podman.podman_image:
-      name: "docker.io/vaultwarden/server:latest"
-      state: "absent"
-    tags:
-      - "vault"
-
-  - name: "Vault | Recreate Vaultwarden with updated image"
+  - name: "Vault | Creating Vaultwarden container"
     containers.podman.podman_container:
       image: "docker.io/vaultwarden/server:latest"
       pod: "vault"
@@ -208,22 +184,19 @@
         ADMIN_TOKEN: "{{ pass['Vaultwarden_Token'] }}"
       volume: 
         - "/home/{{ ansible_user }}/vaultwarden/data:/data:Z"
+      state: "started"
     tags:
       - "vault"
 
-### [Status] - Uptime Kuma container update
+### [Status] - Create vault service
+### Need to be last to avoid uptime kuma unwanted error
 
-  - name: "Status | Remove Uptime Kuma container"
-    containers.podman.podman_container:
-      name: "Uptime-Kuma"
-      state: "absent"
-    tags:
-      - "status"
-
-  - name: "Status | Remove Uptime Kuma image"
-    containers.podman.podman_image:
-      name: "docker.io/louislam/uptime-kuma:latest"
-      state: "absent"
+  - name: "Status | Creating status pod"
+    containers.podman.podman_pod:
+      name: "status"
+      hostname: "status"
+      network: "proxy"
+      state: "started"
     tags:
       - "status"
 
@@ -236,5 +209,6 @@
       memory: "512m"
       volume: 
         - "/home/{{ ansible_user }}/kuma/data:/app/data:Z"
+      state: "started"
     tags:
       - "status"
