@@ -78,6 +78,44 @@
     tags:
       - "proxy"
 
+### [MariaDB] - Update all MariaDB container
+
+  - name: "Drive | Remove DriveDB container"
+    containers.podman.podman_container:
+      name: "DriveDB"
+      state: "absent"
+    tags:
+      - "mariadb"
+      - "drive"
+
+  - name: "Drive | Remove MariaDB image"
+    containers.podman.podman_image:
+      name: "docker.io/library/mariadb:latest"
+      state: "absent"
+    tags:
+      - "mariadb"
+      - "drive"
+  
+  - name: "Drive | Recreate DriveDB container with updated image"
+    containers.podman.podman_container:
+      image: "docker.io/library/mariadb:latest"
+      pod: "drive"
+      name: "DriveDB"
+      restart_policy: "always"
+      memory: "512m"
+      env:
+        MYSQL_DATABASE: "nextcloud"
+        MYSQL_USER: "{{ pass['MySQL_Username'] }}"
+        MYSQL_PASSWORD: "{{ pass['MySQL_Password'] }}"
+        MYSQL_ROOT_PASSWORD: "{{ pass['MySQL_Root_Password'] }}"
+      volume: 
+        - "/home/{{ ansible_user }}/nextcloud/database:/var/lib/mysql:Z" 
+      command: "--skip-innodb-read-only-compressed"
+      state: "started"
+    tags:
+      - "mariadb"
+      - "drive"
+
 ### [Drive] - Nextcloud container update
 
   - name: "Drive | Remove Nextcloud container"
